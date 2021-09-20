@@ -11,11 +11,6 @@
 #import "BSJTopicTopComent.h"
 #import "BSJUser.h"
 
-
-
-
-
-
 @interface BSJTopic : NSObject
 
 /** 帖子的类型 */
@@ -93,16 +88,16 @@
 /** 审核通过的时间 */
 @property (nonatomic, copy) NSString *passtime;
 
+/** 帖子的 id time */
+@property (nonatomic, copy) NSString *t;
 
 /** 图片的宽度 */
 @property (nonatomic, assign) CGFloat width;
 /** 图片的高度 */
 @property (assign, nonatomic) CGFloat height;
 
-
 /** 热门评论 */
 @property (nonatomic, strong) NSMutableArray<BSJTopicTopComent *> *topCmts;
-
 
 @end
 

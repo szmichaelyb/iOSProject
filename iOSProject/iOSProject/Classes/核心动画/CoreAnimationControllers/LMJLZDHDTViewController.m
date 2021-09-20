@@ -16,9 +16,7 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    
-    self.fd_interactivePopDisabled = YES;
-//    self.title = @"手指移动画线";
+    self.title = @"手指移动画线";
     [MBProgressHUD showAutoMessage:@"手指移动画线"];
     
 }
@@ -30,33 +28,13 @@
 
 }
 
-
-
 - (IBAction)reDraw:(UIButton *)sender {
     
     LZDHDTDrawView *view = (LZDHDTDrawView *)self.view;
     [view reDraw];
 }
 
-
 @end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 @interface LZDHDTDrawView ()
@@ -67,17 +45,13 @@
 
 @property (nonatomic, weak) CAReplicatorLayer *repL;
 
-
 @end
 
 @implementation LZDHDTDrawView
 
-
 static int _instansCount = 0;
-
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
 {
-    
     // 重绘
     [self reDraw];
     
@@ -93,7 +67,6 @@ static int _instansCount = 0;
     [path moveToPoint:curP];
     
     _path = path;
-    
 }
 
 
@@ -112,7 +85,6 @@ static int _instansCount = 0;
     [self setNeedsDisplay];
     
     _instansCount ++;
-    
 }
 
 
@@ -126,7 +98,6 @@ static int _instansCount = 0;
 #pragma mark - 开始动画
 - (void)startAnim
 {
-    
     [_dotLayer removeAnimationForKey:@"CAKeyframeAnimation"];
     
     _dotLayer.hidden = NO;
@@ -148,7 +119,6 @@ static int _instansCount = 0;
     _repL.instanceCount = _instansCount;
     
     _repL.instanceDelay = 0.1;
-    
 }
 
 
@@ -171,7 +141,6 @@ static int _instansCount = 0;
     
     layer.cornerRadius = wh / 2;
     
-    
     layer.backgroundColor = [UIColor blueColor].CGColor;
     
     [repL addSublayer:layer];
@@ -184,11 +153,8 @@ static int _instansCount = 0;
 {
     _path = nil;
     _instansCount = 0;
-    [self setNeedsDisplay];
-    
     _dotLayer.hidden = YES;
-    
-    
+    [self setNeedsDisplay];
 }
 
 

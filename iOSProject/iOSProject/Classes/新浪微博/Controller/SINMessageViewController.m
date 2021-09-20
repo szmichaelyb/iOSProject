@@ -19,6 +19,7 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    self.navigationItem.title = @"消息";
 }
 
 
@@ -27,13 +28,10 @@
     [super viewWillAppear:animated];
     
     if ([SINUserManager sharedManager].isLogined) {
-//        self.tableView.hidden = NO;
         self.unLoginRegisterView.hidden = YES;
     }else
     {
-//        self.tableView.hidden = YES;
         self.unLoginRegisterView.hidden = NO;
-//        [self endHeaderFooterRefreshing];
     }
 }
 
@@ -45,7 +43,7 @@
 {
     if(_unLoginRegisterView == nil)
     {
-        LMJWeakSelf(self);
+        LMJWeak(self);
         SINUnLoginRegisterView *unLoginRegisterView = [SINUnLoginRegisterView unLoginRegisterViewWithType:SINUnLoginRegisterViewTypeMsgPage registClick:^{
             
             [weakself gotoLogin];
@@ -73,14 +71,10 @@
 - (void)gotoLogin
 {
     [[SINUserManager sharedManager] sinaLogin:^(NSError *error) {
-        
         if (!error) {
-            
             self.unLoginRegisterView.hidden = YES;
         }
-        
     }];
-    
 }
 
 

@@ -7,12 +7,14 @@
 //
 
 #import "LMJIntroductoryPagesView.h"
+#import <YYAnimatedImageView.h>
+#import <YYImage.h>
 
 @interface LMJIntroductoryPagesView ()<UIScrollViewDelegate>
 /** <#digest#> */
 @property (nonatomic, strong) NSArray<NSString *> *imagesArray;
 
-@property(nonatomic,strong)UIPageControl *pageControl;
+@property (nonatomic,strong) UIPageControl *pageControl;
 
 /** <#digest#> */
 @property (weak, nonatomic) UIScrollView *scrollView;

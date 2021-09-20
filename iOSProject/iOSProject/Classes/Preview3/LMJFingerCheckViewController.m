@@ -7,7 +7,7 @@
 //
 
 #import "LMJFingerCheckViewController.h"
-#import <TDTouchID.h>
+#import "TDTouchID.h"
 
 @interface LMJFingerCheckViewController ()
 
@@ -19,14 +19,10 @@
     [super viewDidLoad];
     
     //使用TDButton更方便 https://github.com/greezi/TDButton
-    UIButton *touchIDButton = [[UIButton alloc] init];
-    [touchIDButton setBackgroundImage:[UIImage imageWithColor:[UIColor RandomColor]] forState:UIControlStateNormal];
-    
-    [touchIDButton setTitle:@"指纹解锁" forState:UIControlStateNormal];
-    
-    [touchIDButton addTarget:self action:@selector(touchVerification) forControlEvents:UIControlEventTouchDown];
-    touchIDButton.frame = CGRectMake((self.view.frame.size.width - 200) * 0.5, 200, 200, 60);
-    [self.view addSubview:touchIDButton];
+    LMJWeak(self);
+    self.addItem([LMJWordItem itemWithTitle:@"指纹解锁" subTitle:nil itemOperation:^(NSIndexPath *indexPath) {
+        [weakself touchVerification];
+    }]);
 }
 
 
@@ -35,9 +31,7 @@
  */
 - (void)touchVerification {
     
-    TDTouchID *touchID = [[TDTouchID alloc] init];
-    
-    [touchID td_showTouchIDWithDescribe:nil BlockState:^(TDTouchIDState state, NSError *error) {
+    [TDTouchID td_showTouchIDWithDescribe:nil BlockState:^(TDTouchIDState state, NSError *error) {
         
         if (state == TDTouchIDStateNotSupport) {    //不支持TouchID
             
@@ -52,6 +46,10 @@
         } else if (state == TDTouchIDStateInputPassword) { //用户选择手动输入密码
             
             [self.view makeToast:@"当前设备不支持TouchID, 请输入密码"];
+        }else {
+//            localizedFailureReason
+//            localizedDescription
+            [self.view makeToast:error.localizedDescription];
         }
         
         // ps:以上的状态处理并没有写完全!

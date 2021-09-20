@@ -19,7 +19,6 @@ static const UIEdgeInsets LMJ_EdgeInsets_ = {20, 10, 10, 10};
 @property (nonatomic, strong) NSMutableArray<UICollectionViewLayoutAttributes *> *lmj_AtrbsArray;
 
 /** 每一列的最后的高度 */
-/** <#digest#> */
 @property (assign, nonatomic) CGRect lmj_LastAtrbsFrame;
 
 
@@ -29,9 +28,7 @@ static const UIEdgeInsets LMJ_EdgeInsets_ = {20, 10, 10, 10};
 
 - (UIEdgeInsets)edgeInsets;
 
-
 - (CGRect)maxHeightFrame;
-
 
 @end
 
@@ -50,8 +47,6 @@ static const UIEdgeInsets LMJ_EdgeInsets_ = {20, 10, 10, 10};
     //复赋值以顶部的高度, 并且根据列数
     self.lmj_LastAtrbsFrame = CGRectMake(0, 0, self.collectionView.frame.size.width, 0);
     
-    
-    
     // 移除以前计算的cells的attrbs
     [self.lmj_AtrbsArray removeAllObjects];
     
@@ -60,9 +55,6 @@ static const UIEdgeInsets LMJ_EdgeInsets_ = {20, 10, 10, 10};
     {
         [self.lmj_AtrbsArray addObject:[self layoutAttributesForItemAtIndexPath:[NSIndexPath indexPathForItem:i inSection:0]]];
     }
-    
-    
-    
 }
 
 
@@ -85,8 +77,8 @@ static const UIEdgeInsets LMJ_EdgeInsets_ = {20, 10, 10, 10};
     // 拿到最后的高度最小的那一列, 假设第0列最小
     CGFloat rightLeftWidth = self.collectionView.frame.size.width - CGRectGetMaxX(self.lmj_LastAtrbsFrame) - [self xMarginAtIndexPath:indexPath] - self.edgeInsets.right;
     
-    CGFloat x = self.edgeInsets.left;
-    CGFloat y = self.edgeInsets.top;
+    CGFloat x = 0;
+    CGFloat y = 0;
     
     
     if (rightLeftWidth >= w) {
@@ -100,12 +92,8 @@ static const UIEdgeInsets LMJ_EdgeInsets_ = {20, 10, 10, 10};
         y = CGRectGetMaxY(self.maxHeightFrame) + [self yMarginAtIndexPath:indexPath];
     }
     
-
-    
     if (w > self.collectionView.frame.size.width - self.edgeInsets.left - self.edgeInsets.right) {
-        
         x = (self.collectionView.frame.size.width - w) * 0.5;
-        
     }
     
     if (y <= [self yMarginAtIndexPath:indexPath]) {
@@ -132,15 +120,11 @@ static const UIEdgeInsets LMJ_EdgeInsets_ = {20, 10, 10, 10};
 {
     __block CGRect maxHeightFrame = self.lmj_LastAtrbsFrame;
     
-    
     [self.lmj_AtrbsArray enumerateObjectsUsingBlock:^(UICollectionViewLayoutAttributes * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
         
         if (CGRectGetMaxY(obj.frame) > CGRectGetMaxY(maxHeightFrame)) {
-            
             maxHeightFrame = obj.frame;
-            
         }
-        
     }];
     
     return maxHeightFrame;

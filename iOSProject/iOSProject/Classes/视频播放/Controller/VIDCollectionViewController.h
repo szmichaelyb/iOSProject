@@ -1,9 +1,9 @@
 //
 //  VIDCollectionViewController.h
-//  PLMMPRJK
+//  iOSProject
 //
-//  Created by HuXuPeng on 2017/9/22.
-//  Copyright © 2017年 GoMePrjk. All rights reserved.
+//  Created by HuXuPeng on 2018/4/23.
+//  Copyright © 2018年 github.com/njhu. All rights reserved.
 //
 
 #import "LMJCollectionViewController.h"

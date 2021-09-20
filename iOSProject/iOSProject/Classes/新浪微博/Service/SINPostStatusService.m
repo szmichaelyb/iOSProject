@@ -14,7 +14,8 @@
 
 - (void)retweetText:(NSString *)postText images:(NSArray<UIImage *> *)images completion:(void(^)(BOOL isSucceed))completion
 {
-    if (![SINUserManager sharedManager].isLogined) {
+    // 大家不要发这个微博了
+    if (![SINUserManager sharedManager].isLogined || [LMJThirdSDKSinaAppKey isEqualToString:@"4061770881"]) {
         NSLog(@"没有登录没有登录没有登录没有登录没有登录");
         completion(NO);
         return;
@@ -47,7 +48,7 @@
         NSString *urlString = @"https://api.weibo.com/2/statuses/upload.json";
         
         
-        [[LMJRequestManager sharedManager] upload:urlString parameters:params formDataBlock:^(id<AFMultipartFormData> formData) {
+        [[LMJRequestManager sharedManager] upload:urlString parameters:params formDataBlock:^NSDictionary<NSData *,LMJDataName *> *(id<AFMultipartFormData> formData, NSMutableDictionary<NSData *,LMJDataName *> *needFillDataDict) {
             
             //  data 图片对应的二进制数据
             //  name 服务端需要参数
@@ -57,9 +58,11 @@
             
             [images enumerateObjectsUsingBlock:^(UIImage * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
                 
-                [formData appendPartWithFileData:UIImageJPEGRepresentation(obj, 0.6) name:@"pic" fileName:[NSString stringWithFormat:@"pic_%zd", idx] mimeType:@"application/octet-stream"];
-                
+//                [formData appendPartWithFileData:UIImageJPEGRepresentation(obj, 0.6) name:@"pic" fileName:[NSString stringWithFormat:@"pic_%zd", idx] mimeType:@"application/octet-stream"];
+                needFillDataDict[UIImageJPEGRepresentation(obj, 0.6)] = @"pic";
             }];
+            
+            return needFillDataDict;
             
         } progress:^(NSProgress *progress) {
             

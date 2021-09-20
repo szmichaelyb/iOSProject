@@ -9,12 +9,12 @@
 #import "LMJRefreshTableViewController.h"
 #import "BSJ.h"
 
-
-
-
 @interface BSJTopicViewController : LMJRefreshTableViewController
 
 /** <#digest#> */
 @property (assign, nonatomic) BSJTopicType topicType;
+
+/** <#digest#> */
+@property (nonatomic, copy) NSString *areaType;
 
 @end

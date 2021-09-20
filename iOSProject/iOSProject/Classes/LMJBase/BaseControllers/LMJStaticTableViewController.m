@@ -18,16 +18,13 @@ const UIEdgeInsets tableViewDefaultLayoutMargins = {8, 8, 8, 8};
 
 @implementation LMJStaticTableViewController
 
-
-
 - (void)viewDidLoad
 {
     [super viewDidLoad];
     
     NSLog(@"self.tableView.separatorInset = %@, self.tableView.separatorInset = %@", NSStringFromUIEdgeInsets(self.tableView.separatorInset), NSStringFromUIEdgeInsets(self.tableView.layoutMargins));
-    
-//    self.tableView.separatorInset = UIEdgeInsetsZero;
-//    self.tableView.layoutMargins = UIEdgeInsetsZero;
+    //    self.tableView.separatorInset = UIEdgeInsetsZero;
+    //    self.tableView.layoutMargins = UIEdgeInsetsZero;
 }
 
 
@@ -74,9 +71,10 @@ const UIEdgeInsets tableViewDefaultLayoutMargins = {8, 8, 8, 8};
         if(arrowItem.destVc)
         {
             UIViewController *vc = [[arrowItem.destVc alloc] init];
-            vc.navigationItem.title = arrowItem.title;
-            
-            [self.navigationController pushViewController:vc animated:YES];
+            if ([vc isKindOfClass:[UIViewController class]]) {
+                vc.navigationItem.title = arrowItem.title;
+                [self.navigationController pushViewController:vc animated:YES];
+            }
         }
     }
     
@@ -107,9 +105,22 @@ const UIEdgeInsets tableViewDefaultLayoutMargins = {8, 8, 8, 8};
     return _sections;
 }
 
+- (LMJStaticTableViewController *(^)(LMJWordItem *))addItem {
+    
+    LMJWeak(self);
+    if (!self.sections.firstObject) {
+        [self.sections addObject:[LMJItemSection sectionWithItems:@[] andHeaderTitle:nil footerTitle:nil]];
+    }
+    return  ^LMJStaticTableViewController *(LMJWordItem *item) {
+        [weakself.sections.firstObject.items addObject:item];
+        return weakself;
+    };
+}
+
 - (instancetype)init
 {
     return [super initWithStyle:UITableViewStyleGrouped];
 }
+
 
 @end

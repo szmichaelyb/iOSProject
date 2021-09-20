@@ -7,6 +7,7 @@
 //
 
 #import "JXTAlertController.h"
+#import <UIWindow+CurrentViewController.h>
 
 //toast默认展示时间
 static NSTimeInterval const JXTAlertShowDurationDefault = 1.0f;
@@ -65,7 +66,7 @@ typedef void (^JXTAlertActionsConfig)(JXTAlertActionBlock actionBlock);
 }
 - (void)dealloc
 {
-//    NSLog(@"test-dealloc");
+    NSLogFunc;
 }
 
 #pragma mark - Private
@@ -85,6 +86,7 @@ typedef void (^JXTAlertActionsConfig)(JXTAlertActionBlock actionBlock);
         {
             //创建action
             __weak typeof(self)weakSelf = self;
+            
             [self.jxt_alertActionArray enumerateObjectsUsingBlock:^(JXTAlertActionModel *actionModel, NSUInteger idx, BOOL * _Nonnull stop) {
                 UIAlertAction *alertAction = [UIAlertAction actionWithTitle:actionModel.title style:actionModel.style handler:^(UIAlertAction * _Nonnull action) {
                     __strong typeof(weakSelf)strongSelf = weakSelf;
@@ -95,7 +97,7 @@ typedef void (^JXTAlertActionsConfig)(JXTAlertActionBlock actionBlock);
                 //可利用这个改变字体颜色，但是不推荐！！！
 //                [alertAction setValue:[UIColor grayColor] forKey:@"titleTextColor"];
                 //action作为self元素，其block实现如果引用本类指针，会造成循环引用
-                [self addAction:alertAction];
+                [weakSelf addAction:alertAction];
             }];
         }
         else
@@ -115,7 +117,9 @@ typedef void (^JXTAlertActionsConfig)(JXTAlertActionBlock actionBlock);
     if (!(title.length > 0) && (message.length > 0) && (preferredStyle == UIAlertControllerStyleAlert)) {
         title = @"";
     }
+    
     self = [[self class] alertControllerWithTitle:title message:message preferredStyle:preferredStyle];
+    
     if (!self) return nil;
     
     self.jxt_setAlertAnimated = NO;
@@ -124,10 +128,14 @@ typedef void (^JXTAlertActionsConfig)(JXTAlertActionBlock actionBlock);
     return self;
 }
 
+
 - (void)alertAnimateDisabled
 {
     self.jxt_setAlertAnimated = YES;
 }
+
+
+#pragma mark - addButton
 
 - (JXTAlertActionTitle)addActionDefaultTitle
 {
@@ -180,36 +188,28 @@ typedef void (^JXTAlertActionsConfig)(JXTAlertActionBlock actionBlock);
             return ;
         }
         //加工链
-        appearanceProcess(alertMaker);
+        !appearanceProcess ?: appearanceProcess(alertMaker);
         //配置响应
         alertMaker.alertActionsConfig(actionBlock);
-//        alertMaker.alertActionsConfig(^(NSInteger buttonIndex, UIAlertAction *action){
-//            if (actionBlock) {
-//                actionBlock(buttonIndex, action);
-//            }
-//        });
-        
-        if (alertMaker.alertDidShown)
-        {
-            [self presentViewController:alertMaker animated:!(alertMaker.jxt_setAlertAnimated) completion:^{
-                alertMaker.alertDidShown();
-            }];
-        }
-        else
-        {
-            [self presentViewController:alertMaker animated:!(alertMaker.jxt_setAlertAnimated) completion:NULL];
-        }
+
+        [self presentViewController:alertMaker animated:!(alertMaker.jxt_setAlertAnimated) completion:^{
+            !alertMaker.alertDidShown ?: alertMaker.alertDidShown();
+        }];
     }
 }
 
 - (void)jxt_showAlertWithTitle:(NSString *)title message:(NSString *)message appearanceProcess:(JXTAlertAppearanceProcess)appearanceProcess actionsBlock:(JXTAlertActionBlock)actionBlock
 {
-    [self jxt_showAlertWithPreferredStyle:UIAlertControllerStyleAlert title:title message:message appearanceProcess:appearanceProcess actionsBlock:actionBlock];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self jxt_showAlertWithPreferredStyle:UIAlertControllerStyleAlert title:title message:message appearanceProcess:appearanceProcess actionsBlock:actionBlock];
+    });
 }
 
 - (void)jxt_showActionSheetWithTitle:(NSString *)title message:(NSString *)message appearanceProcess:(JXTAlertAppearanceProcess)appearanceProcess actionsBlock:(JXTAlertActionBlock)actionBlock
 {
+    dispatch_async(dispatch_get_main_queue(), ^{
     [self jxt_showAlertWithPreferredStyle:UIAlertControllerStyleActionSheet title:title message:message appearanceProcess:appearanceProcess actionsBlock:actionBlock];
+    });
 }
 
 
@@ -230,7 +230,7 @@ typedef void (^JXTAlertActionsConfig)(JXTAlertActionBlock actionBlock);
             appearanceProcess:(JXTAlertAppearanceProcess)appearanceProcess
                  actionsBlock:(nullable JXTAlertActionBlock)actionBlock NS_AVAILABLE_IOS(8_0)
 {
-    [[UIApplication sharedApplication].keyWindow.currentViewController jxt_showAlertWithTitle:title message:message appearanceProcess:appearanceProcess actionsBlock:actionBlock];
+    [[UIWindow zf_currentViewController] jxt_showAlertWithTitle:title message:message appearanceProcess:appearanceProcess actionsBlock:actionBlock];
 }
 
 /**
@@ -246,7 +246,7 @@ typedef void (^JXTAlertActionsConfig)(JXTAlertActionBlock actionBlock);
                   appearanceProcess:(JXTAlertAppearanceProcess)appearanceProcess
                        actionsBlock:(nullable JXTAlertActionBlock)actionBlock NS_AVAILABLE_IOS(8_0)
 {
-    [[UIApplication sharedApplication].keyWindow.currentViewController jxt_showActionSheetWithTitle:title message:message appearanceProcess:appearanceProcess actionsBlock:actionBlock];
+    [[UIWindow zf_currentViewController] jxt_showActionSheetWithTitle:title message:message appearanceProcess:appearanceProcess actionsBlock:actionBlock];
 }
 @end
 

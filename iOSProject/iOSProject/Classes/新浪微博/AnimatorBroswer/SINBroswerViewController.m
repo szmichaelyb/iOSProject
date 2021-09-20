@@ -8,6 +8,7 @@
 
 #import "SINBroswerViewController.h"
 #import "SINBroswerCell.h"
+#import "UIView+GestureCallback.h"
 
 @interface SINBroswerViewController ()<LMJHorizontalFlowLayoutDelegate>
 
@@ -17,24 +18,19 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    
+    self.modalPresentationCapturesStatusBarAppearance = YES;
     self.view.backgroundColor = self.collectionView.backgroundColor = [UIColor blackColor];
     self.collectionView.pagingEnabled = YES;
-
-    LMJWeakSelf(self);
+    LMJWeak(self);
     [self.collectionView addTapGestureRecognizer:^(UITapGestureRecognizer *recognizer, NSString *gestureId) {
         [weakself dismissViewControllerAnimated:YES completion:nil];
     }];
-    
     [self.collectionView registerClass:[SINBroswerCell class] forCellWithReuseIdentifier:NSStringFromClass([SINBroswerCell class])];
- 
     self.collectionView.lmj_width += 10;
 }
 
-- (void)viewWillAppear:(BOOL)animated
-{
+- (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
-    
     CGFloat pageWidth = self.collectionView.frame.size.width;
     CGFloat offsetY = self.collectionView.contentOffset.y;
     CGFloat offsetX = self.startIndexPath.item * pageWidth;
@@ -42,19 +38,19 @@
     [self.collectionView setContentOffset:offset animated:NO];
 }
 
+- (BOOL)prefersStatusBarHidden {
+    return YES;
+}
 
 #pragma mark - collectionViewDelegate
-- (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section
-{
+- (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section{
     return self.imageUrls.count;
 }
 
 - (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath
 {
     SINBroswerCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:NSStringFromClass([SINBroswerCell class]) forIndexPath:indexPath];
-    
     cell.imageDict = self.imageUrls[indexPath.item];
-    
     return cell;
 }
 
@@ -62,36 +58,28 @@
 
 #pragma mark - SINBroswerAnimatorDismissDelegate
 
-- (CGRect)startRectWithBroswerAnimator:(SINBroswerAnimator *)broswerAnimator
-{
+- (CGRect)startRectWithBroswerAnimator:(SINBroswerAnimator *)broswerAnimator {
     SINBroswerCell *currentCell = (SINBroswerCell *)self.collectionView.visibleCells.firstObject;
-    
-    
     return [currentCell convertRect:currentCell.imageView.frame toView:[UIApplication sharedApplication].keyWindow];
 }
 
-
-- (UIImageView *)startImageViewWithBroswerAnimator:(SINBroswerAnimator *)broswerAnimator
-{
+- (UIImageView *)startImageViewWithBroswerAnimator:(SINBroswerAnimator *)broswerAnimator {
     SINBroswerCell *currentCell = (SINBroswerCell *)self.collectionView.visibleCells.firstObject;
     
     UIImageView *startImage = [[UIImageView alloc] init];
     startImage.contentMode = UIViewContentModeScaleAspectFill;
     startImage.image = currentCell.imageView.image;
     startImage.clipsToBounds = YES;
-    
     return startImage;
 }
 
-- (NSIndexPath *)currentIndexPathWithBroswerAnimator:(SINBroswerAnimator *)broswerAnimator
-{
+- (NSIndexPath *)currentIndexPathWithBroswerAnimator:(SINBroswerAnimator *)broswerAnimator {
     return self.collectionView.indexPathsForVisibleItems.firstObject;
 }
 
 
 #pragma mark - layout
-- (UICollectionViewLayout *)collectionViewController:(LMJCollectionViewController *)collectionViewController layoutForCollectionView:(UICollectionView *)collectionView
-{
+- (UICollectionViewLayout *)collectionViewController:(LMJCollectionViewController *)collectionViewController layoutForCollectionView:(UICollectionView *)collectionView {
     return [LMJHorizontalFlowLayout flowLayoutWithDelegate:self];
 }
 
@@ -140,8 +128,5 @@
 {
     return UIEdgeInsetsZero;
 }
-
-
-
 
 @end

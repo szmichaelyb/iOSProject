@@ -24,18 +24,12 @@
 @implementation BSJMeViewController
 
 - (void)viewDidLoad {
-    
     [super viewDidLoad];
-    
-    self.navigationItem.title = @"我的";
-    
      UIEdgeInsets contentInset = self.collectionView.contentInset;
     contentInset.bottom += self.tabBarController.tabBar.lmj_height;
     self.collectionView.contentInset = contentInset;
-    
-    
+    self.navigationItem.title = @"我的";
     [self.collectionView registerNib:[UINib nibWithNibName:NSStringFromClass(BSJMeSquareCell.class) bundle:[NSBundle mainBundle]] forCellWithReuseIdentifier:NSStringFromClass(BSJMeSquareCell.class)];
-    
     [self getDatas];
 }
 
@@ -46,7 +40,7 @@
     params[@"a"] = @"square";
     params[@"c"] = @"topic";
     
-    LMJWeakSelf(self);
+    LMJWeak(self);
     [self.requestManager GET:BSJBaiSiJieHTTPAPI parameters:params completion:^(LMJBaseResponse *response) {
 
         NSError *error = response.error;
@@ -57,13 +51,11 @@
         
         [weakself.meSquares removeAllObjects];
         [weakself.meSquares addObjectsFromArray:[BSJMeSquare mj_objectArrayWithKeyValuesArray:response.responseObject[@"square_list"]]];
-        
-        [self.collectionView reloadData];
-        
-        
+        if ([weakself.meSquares.lastObject isKindOfClass:NSArray.class]) {
+            [weakself.meSquares removeLastObject];
+        }
+        [weakself.collectionView reloadData];
     }];
-    
-    
 }
 
 
@@ -78,23 +70,17 @@
 - (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath
 {
     BSJMeSquareCell *squareCell = [collectionView dequeueReusableCellWithReuseIdentifier:NSStringFromClass(BSJMeSquareCell.class) forIndexPath:indexPath];
-    
     squareCell.meSquare = self.meSquares[indexPath.item];
-    
     return squareCell;
 }
 
 
 - (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath
 {
-    
     NSLog(@"%@", indexPath);
-    
     LMJWebViewController *webVc = [[LMJWebViewController alloc] init];
     webVc.gotoURL = self.meSquares[indexPath.row].url.absoluteString;
-    
     [self.navigationController pushViewController:webVc animated:YES];
-    
 }
 
 

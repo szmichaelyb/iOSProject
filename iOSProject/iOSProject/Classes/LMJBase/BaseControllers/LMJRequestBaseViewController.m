@@ -7,6 +7,7 @@
 //
 
 #import "LMJRequestBaseViewController.h"
+#import "MBProgressHUD+LMJ.h"
 
 @interface LMJRequestBaseViewController ()
 
@@ -20,16 +21,12 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     
-    
     [self reachHost];
 }
-
 
 #pragma mark - 加载框
 - (void)showLoading
 {
-//    [MBProgressHUD showLoadToView:self.view];
-    
     [MBProgressHUD showProgressToView:self.view Text:@"加载中..."];
 }
 
@@ -46,31 +43,19 @@
     if(_reachHost == nil)
     {
         _reachHost = [Reachability reachabilityWithHostName:kURL_Reachability__Address];
-        
-        LMJWeakSelf(self);
+        LMJWeak(self);
         [_reachHost setUnreachableBlock:^(Reachability * reachability){
-        
             dispatch_async(dispatch_get_main_queue(), ^{
-                
                 [weakself networkStatus:reachability.currentReachabilityStatus inViewController:weakself];
-                
             });
-            
         }];
-        
         
         [_reachHost setReachableBlock:^(Reachability * reachability){
-            
             dispatch_async(dispatch_get_main_queue(), ^{
-                
                 [weakself networkStatus:reachability.currentReachabilityStatus inViewController:weakself];
-                
             });
-            
         }];
-        
         [_reachHost startNotifier];
-        
     }
     return _reachHost;
 }
@@ -93,7 +78,6 @@
         default:
             break;
     }
-    
 }
 
 

@@ -7,28 +7,23 @@
 //
 
 #import "BSJTopicService.h"
+#import "BSJTopicListDAL.h"
 
 @interface BSJTopicService ()
 
-/** <#digest#> */
-@property (assign, nonatomic) NSInteger currentPage;
-
-/** <#digest#> */
 @property (nonatomic, copy) NSString *maxtime;
+
+/** 防止重复刷新 */
+@property (nonatomic, strong) id parameters;
 
 @end
 
 @implementation BSJTopicService
 
-
-
 - (void)getTopicIsMore:(BOOL)isMore typeA:(NSString *)typeA topicType:(NSInteger)topicType completion:(void(^)(NSError *error, NSInteger totalCount, NSInteger currentCount))completion
 {
     NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
-    
-    
-    NSInteger page = isMore ? (self.currentPage + 1) : 1;
-    
+    self.parameters = parameters;
     
     parameters[@"a"] = typeA;
     parameters[@"c"] = @"data";
@@ -36,42 +31,60 @@
     parameters[@"maxtime"] = isMore ? self.maxtime : nil;
     parameters[@"per"] = @10;
     
-    [self GET:BSJBaiSiJieHTTPAPI parameters:parameters completion:^(LMJBaseResponse *response) {
+    [BSJTopicListDAL queryTopicListFromDiskWithAreaType:typeA topicType:[NSString stringWithFormat:@"%zd", topicType] maxTime:parameters[@"maxtime"] per:10 completion:^(NSMutableArray<NSMutableDictionary *> *dictArrayM) {
         
-        if (response.error) {
-            completion(response.error, 0, 0);
+        if (self.parameters != parameters) {
             return ;
         }
         
-        
-        if (!isMore) {
+        if (dictArrayM.count > 0) {
             
-            [self.topicViewModels removeAllObjects];
+            if (!isMore) {
+                [self.topicViewModels removeAllObjects];
+            }
+            
+            NSMutableArray<BSJTopicViewModel *> *newTopicViewModels = [NSMutableArray array];
+            
+            [[BSJTopic mj_objectArrayWithKeyValuesArray:dictArrayM] enumerateObjectsUsingBlock:^(BSJTopic  *_Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+                [newTopicViewModels addObject:[BSJTopicViewModel viewModelWithTopic:obj]];
+            }];
+            [self.topicViewModels addObjectsFromArray:newTopicViewModels];
+            self.maxtime = self.topicViewModels.lastObject.topic.t;
+            completion(nil, 999999999, self.topicViewModels.count);
+            
+        } else {
+            
+            [self GET:BSJBaiSiJieHTTPAPI parameters:parameters completion:^(LMJBaseResponse *response) {
+                if (self.parameters != parameters) {
+                    return ;
+                }
+                
+                if (response.error) {
+                    completion(response.error, 0, 0);
+                    return ;
+                }
+                
+                if (!isMore) {
+                    [self.topicViewModels removeAllObjects];
+                }
+                
+                // 数据库缓存
+                if (!LMJIsEmpty(response.responseObject[@"list"])) {
+                    [BSJTopicListDAL cachesTopicList:response.responseObject[@"list"] areaType:typeA];
+                }
+                
+                NSMutableArray<BSJTopicViewModel *> *newTopicViewModels = [NSMutableArray array];
+                
+                [[BSJTopic mj_objectArrayWithKeyValuesArray:response.responseObject[@"list"]] enumerateObjectsUsingBlock:^(BSJTopic  *_Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+                    [newTopicViewModels addObject:[BSJTopicViewModel viewModelWithTopic:obj]];
+                }];
+                
+                [self.topicViewModels addObjectsFromArray:newTopicViewModels];
+                self.maxtime = self.topicViewModels.lastObject.topic.t;
+                completion(nil, [response.responseObject[@"info"][@"count"] integerValue], self.topicViewModels.count);
+            }];
         }
-        
-        self.currentPage = page;
-        
-        self.maxtime = [response.responseObject[@"info"][@"maxtime"] copy];
-        
-        
-        NSMutableArray<BSJTopicViewModel *> *newTopicViewModels = [NSMutableArray array];
-        
-        
-        [[BSJTopic mj_objectArrayWithKeyValuesArray:response.responseObject[@"list"]] enumerateObjectsUsingBlock:^(BSJTopic  *_Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-            
-            [newTopicViewModels addObject:[BSJTopicViewModel viewModelWithTopic:obj]];
-            
-        }];
-        
-        [self.topicViewModels addObjectsFromArray:newTopicViewModels];
-        
-        
-        completion(nil, [response.responseObject[@"info"][@"count"] integerValue], self.topicViewModels.count);
-        
-
     }];
-    
-    
 }
 
 

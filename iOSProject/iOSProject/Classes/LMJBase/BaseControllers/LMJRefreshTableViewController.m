@@ -18,23 +18,14 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     
-    LMJWeakSelf(self);
+    LMJWeak(self);
     self.tableView.mj_header = [LMJNormalRefreshHeader headerWithRefreshingBlock:^{
         
         [weakself loadIsMore:NO];
     }];
-    self.tableView.mj_header.automaticallyChangeAlpha = YES;
-    
-    
     self.tableView.mj_footer = [LMJAutoRefreshFooter footerWithRefreshingBlock:^{
-        
         [weakself loadIsMore:YES];
-        
     }];
-    self.tableView.mj_footer.automaticallyChangeAlpha = YES;
-//    self.tableView.mj_footer.automaticallyHidden = YES;
-    
-    
     [self.tableView.mj_header beginRefreshing];
 }
 
@@ -44,10 +35,20 @@
 {
     // 控制只能下拉或者上拉
     if (isMore) {
-        ![self.tableView.mj_header isRefreshing] ?: [self.tableView.mj_header endRefreshing];
+        if ([self.tableView.mj_header isRefreshing]) {
+            [self.tableView.mj_footer endRefreshing];
+            return;
+        }
+        self.tableView.mj_header.hidden = YES;
+        self.tableView.mj_footer.hidden = NO;
     }else
     {
-        ![self.tableView.mj_footer isRefreshing] ?: [self.tableView.mj_footer endRefreshing];
+        if ([self.tableView.mj_footer isRefreshing]) {
+            [self.tableView.mj_header endRefreshing];
+            return;
+        }
+        self.tableView.mj_header.hidden = NO;
+        self.tableView.mj_footer.hidden = YES;
     }
     [self loadMore:isMore];
 }
@@ -60,7 +61,8 @@
     // 结束刷新状态
     ![self.tableView.mj_header isRefreshing] ?: [self.tableView.mj_header endRefreshing];
     ![self.tableView.mj_footer isRefreshing] ?: [self.tableView.mj_footer endRefreshing];
-    
+    self.tableView.mj_header.hidden = NO;
+    self.tableView.mj_footer.hidden = NO;
 }
 
 // 子类需要调用调用

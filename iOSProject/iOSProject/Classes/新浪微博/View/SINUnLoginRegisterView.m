@@ -11,10 +11,10 @@
 @interface SINUnLoginRegisterView ()
 
 /** <#digest#> */
-@property (nonatomic, copy) void(^registClick)();
+@property (nonatomic, copy) void(^registClick)(void);
 
 /** <#digest#> */
-@property (nonatomic, copy) void(^loginClick)();
+@property (nonatomic, copy) void(^loginClick)(void);
 
 /** <#digest#> */
 @property (assign, nonatomic) SINUnLoginRegisterViewType type;
@@ -37,15 +37,12 @@
 
 @implementation SINUnLoginRegisterView
 
-+ (instancetype)unLoginRegisterViewWithType:(SINUnLoginRegisterViewType)type registClick:(void (^)())registClick loginClick:(void (^)())loginClick
++ (instancetype)unLoginRegisterViewWithType:(SINUnLoginRegisterViewType)type registClick:(void (^)(void))registClick loginClick:(void (^)(void))loginClick
 {
     SINUnLoginRegisterView *unLoginRegisterView = [[SINUnLoginRegisterView alloc] init];
-    
     unLoginRegisterView.registClick = registClick;
     unLoginRegisterView.loginClick = loginClick;
     unLoginRegisterView.type = type;
-    
-    
     return unLoginRegisterView;
 }
 
@@ -66,52 +63,36 @@
 - (void)setupUIOnce
 {
     [self.caCycleImageView mas_makeConstraints:^(MASConstraintMaker *make) {
-        
         make.centerX.offset(0);
         make.centerY.offset(-100);
         make.size.mas_equalTo(CGSizeMake(200, 200));
     }];
     
     [self.coverImageView mas_makeConstraints:^(MASConstraintMaker *make) {
-        
         make.left.right.mas_equalTo(self.caCycleImageView);
         make.top.mas_equalTo(self.caCycleImageView).offset(-30);
         make.bottom.mas_equalTo(self.caCycleImageView).offset(0);
     }];
     
     [self.slognImageView mas_makeConstraints:^(MASConstraintMaker *make) {
-        
         make.center.mas_equalTo(self.caCycleImageView);
-        
     }];
     
     [self.encourageLabel mas_makeConstraints:^(MASConstraintMaker *make) {
-        
         make.top.mas_equalTo(self.coverImageView.mas_bottom).offset(20);
         make.left.mas_equalTo(self.coverImageView).offset(-30);
         make.right.mas_equalTo(self.coverImageView).offset(30);
-        
     }];
     
     NSArray *btns = @[self.registerButton, self.loginButton];
     
     [btns mas_distributeViewsAlongAxis:MASAxisTypeHorizontal withFixedSpacing:30 leadSpacing:30 tailSpacing:30];
     [btns mas_makeConstraints:^(MASConstraintMaker *make) {
-        
         make.top.mas_equalTo(self.encourageLabel.mas_bottom).offset(20);
         make.height.mas_equalTo(44);
-        
     }];
-     
-    
 }
 
-- (void)layoutSubviews
-{
-    [super layoutSubviews];
-    
-    
-}
 
 - (void)login:(UIButton *)btn
 {
@@ -130,7 +111,6 @@
     switch (type) {
         case SINUnLoginRegisterViewTypeHomePage:
         {
-            
         }
             break;
         case SINUnLoginRegisterViewTypeMsgPage:
@@ -144,11 +124,9 @@
         {
             self.coverImageView.hidden = YES;
             self.caCycleImageView.hidden = YES;
-            
             self.slognImageView.image = [UIImage imageNamed:@"visitordiscover_image_profile"];
         }
             break;
-
     }
 }
 
@@ -161,19 +139,14 @@
     {
         UIImageView *caCycleImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"visitordiscover_feed_image_smallicon"]];
         [self addSubview:caCycleImageView];
-        
         _caCycleImageView = caCycleImageView;
-        
         CABasicAnimation *animation = [CABasicAnimation animationWithKeyPath:@"transform.rotation.z"];
         animation.duration = 5;
         animation.removedOnCompletion = NO;
         animation.repeatCount = INFINITY;
         animation.fromValue = @0;
         animation.toValue = @(M_PI * 2);
-        
-        
         [caCycleImageView.layer addAnimation:animation forKey:nil];
-        
     }
     return _caCycleImageView;
 }

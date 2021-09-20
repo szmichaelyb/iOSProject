@@ -39,10 +39,13 @@
 @interface LMJWebViewController : LMJBaseViewController<WKNavigationDelegate, WKUIDelegate, LMJWebViewControllerDelegate, LMJWebViewControllerDataSource>
 
 /** webView */
-@property (nonatomic, strong) WKWebView *webView;
+@property (nonatomic, strong) IBOutlet WKWebView *webView;
 
 /** <#digest#> */
 @property (nonatomic, copy) NSString *gotoURL;
+
+/** <#digest#> */
+@property (nonatomic, copy) NSString *contentHTML;
 
 
 // 7页面加载完调用, 必须调用super

@@ -11,18 +11,19 @@
 #import "SINTabBarController.h"
 //#import "IMHTabBarController.h"
 #import "MUSHomeListViewController.h"
-#import "VIDTabBarController.h"
+#import "SINUserManager.h"
+#import "UIView+GestureCallback.h"
 
 @interface LMJMessageViewController ()
 /** <#digest#> */
-@property (weak, nonatomic) UILabel *backBtn;
+@property (strong, nonatomic) UILabel *backBtn;
 @end
 
 @implementation LMJMessageViewController
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    LMJWeakSelf(self);
+    LMJWeak(self);
     NSLog(@"%@", weakself);
     self.navigationItem.title = @"功能实例";
     
@@ -31,45 +32,45 @@
     self.tableView.contentInset = edgeInsets;
     
     
-    LMJWordItem *item0 = [LMJWordItem itemWithTitle:@"百思不得姐" subTitle: @"BSJ"];
+    LMJWordItem *item0 = [LMJWordItem itemWithTitle:@"模仿百思不得姐App" subTitle: @"NJBSJ"];
     [item0 setItemOperation:^(NSIndexPath *indexPath){
         [weakself presentViewController:[[BSJTabBarController alloc] init] animated:YES completion:nil];
     }];
-
     
-    LMJWordItem *item1 = [LMJWordItem itemWithTitle:@"SIN" subTitle: @"新浪微博"];
+    LMJWordItem *item1 = [LMJWordItem itemWithTitle:@"模仿微博App" subTitle: @"NJSina"];
     [item1 setItemOperation:^(NSIndexPath *indexPath){
         [weakself presentViewController:[[SINTabBarController alloc] init] animated:YES completion:nil];
     }];
     
+    //    LMJWordItem *item2 = [LMJWordItem itemWithTitle:@"IM_HX" subTitle: @"环信聊天"];
+    //    [item2 setItemOperation:^(NSIndexPath *indexPath){
+    //        [weakself presentViewController:[[IMHTabBarController alloc] init] animated:YES completion:nil];
+    //    }];
     
-    
-//    LMJWordItem *item2 = [LMJWordItem itemWithTitle:@"IM_HX" subTitle: @"环信聊天"];
-//    [item2 setItemOperation:^(NSIndexPath *indexPath){
-//        [weakself presentViewController:[[IMHTabBarController alloc] init] animated:YES completion:nil];
-//    }];
-    
-    
-    
-    LMJWordItem *item3 = [LMJWordItem itemWithTitle:@"Musics" subTitle: @"QQ音乐"];
+    LMJWordItem *item3 = [LMJWordItem itemWithTitle:@"音乐音频播放" subTitle: @"Music"];
     [item3 setItemOperation:^(NSIndexPath *indexPath){
         [weakself presentViewController:[[LMJNavigationController alloc] initWithRootViewController:[[MUSHomeListViewController alloc] init]] animated:YES completion:nil];
     }];
     
-    
-    
-    LMJWordItem *item4 = [LMJWordItem itemWithTitle:@"Videos" subTitle: @"列表视频"];
+    LMJWordItem *item4 = [LMJWordItem itemWithTitle:@"列表视频" subTitle: @"Video"];
     [item4 setItemOperation:^(NSIndexPath *indexPath){
-        [weakself presentViewController:[[VIDTabBarController alloc] init] animated:YES completion:nil];
+        [weakself presentViewController:[[UIStoryboard storyboardWithName:@"VideoDemo" bundle:[NSBundle mainBundle]] instantiateInitialViewController] animated:YES completion:nil];
     }];
-
-    
     
     LMJItemSection *section0 = [LMJItemSection sectionWithItems:@[item0, item1, item3, item4] andHeaderTitle:nil footerTitle:nil];
     
     [self.sections addObject:section0];
     
-    
+    [[LMJRequestManager sharedManager] GET:[LMJNJHuBaseUrl stringByAppendingPathComponent:@"jsons/accesstoken.json"] parameters:nil completion:^(LMJBaseResponse *response) {
+        NSLog(@"%@", response);
+        if (LMJIsEmpty(response.responseObject) || ![response.responseObject isKindOfClass:[NSDictionary class]]) {
+            return ;
+        }
+        // 作者的微博开放号
+        if ([LMJThirdSDKSinaAppKey isEqualToString:@"4061770881"]) {
+            SINUserManager.sharedManager.accessToken = response.responseObject[@"accessToken"];
+        }
+    }];
 }
 
 - (void)viewDidAppear:(BOOL)animated {
@@ -80,6 +81,7 @@
 - (void)viewDidDisappear:(BOOL)animated {
     [super viewDidDisappear:animated];
     self.backBtn.hidden = !self.presentedViewController;
+    [[UIApplication sharedApplication].keyWindow addSubview:self.backBtn];
 }
 
 - (UILabel *)backBtn
@@ -98,7 +100,7 @@
         btn.layer.cornerRadius = 15;
         btn.layer.masksToBounds = YES;
         
-        LMJWeakSelf(self);
+        LMJWeak(self);
         [btn addTapGestureRecognizer:^(UITapGestureRecognizer *recognizer, NSString *gestureId) {
             
             if (weakself.presentedViewController) {
@@ -107,11 +109,11 @@
             
         }];
         
-
-        LMJWeakSelf(btn);
+        
+        LMJWeak(btn);
         [btn addGestureRecognizer:[[UIPanGestureRecognizer alloc] initWithActionBlock:^(UIPanGestureRecognizer  *_Nonnull sender) {
             
-//            NSLog(@"%@", sender);
+            //            NSLog(@"%@", sender);
             
             // 获取手势的触摸点
             // CGPoint curP = [pan locationInView:self.imageView];
@@ -136,15 +138,9 @@
             
         }]];
         
-        
-        
-        [[UIApplication sharedApplication].keyWindow addSubview:btn];
-        
         _backBtn = btn;
     }
     return _backBtn;
 }
-
-
 
 @end

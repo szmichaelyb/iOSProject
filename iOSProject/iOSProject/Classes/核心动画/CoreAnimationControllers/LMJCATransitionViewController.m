@@ -19,20 +19,18 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    
 }
-
-static int i = 2;
 
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
 {
+    static int i = 2;
     
     // 转场代码
     if (i == 4) {
         i = 1;
     }
     // 加载图片名称
-    NSString *imageN = [NSString stringWithFormat:@"CATransition%d",i];
+    NSString *imageN = [NSString stringWithFormat:@"CATransition%d.png",i];
     
     self.imageView.image = [UIImage imageNamed:imageN];
     
@@ -57,7 +55,7 @@ static int i = 2;
         [self.view addSubview:_imageView];
         
         [_imageView mas_makeConstraints:^(MASConstraintMaker *make) {
-            make.edges.insets(UIEdgeInsetsMake(70, 10, 10, 10));
+            make.edges.insets(UIEdgeInsetsMake(90, 20, 20, 20));
         }];
     }
     return _imageView;

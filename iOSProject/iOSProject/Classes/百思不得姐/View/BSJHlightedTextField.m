@@ -8,7 +8,7 @@
 
 #import "BSJHlightedTextField.h"
 
-static NSString *const BSJHlightTextFieldPlaceHolderColorKeyPath = @"_placeholderLabel.textColor";
+//static NSString *const BSJHlightTextFieldPlaceHolderColorKeyPath = @"";
 
 @interface BSJHlightedTextField ()
 /** <#digest#> */
@@ -34,14 +34,16 @@ static NSString *const BSJHlightTextFieldPlaceHolderColorKeyPath = @"_placeholde
 
 - (void)setupUIOnce
 {   
-    self.oriPlaceHolderColor = [self valueForKeyPath:BSJHlightTextFieldPlaceHolderColorKeyPath];
+//    self.oriPlaceHolderColor = [self valueForKeyPath:BSJHlightTextFieldPlaceHolderColorKeyPath];
     self.tintColor = self.textColor;
+    self.leftView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 15, 20)];
+    self.leftViewMode = UITextFieldViewModeAlways;
 }
 
 
 - (BOOL)becomeFirstResponder
 {
-    [self setValue:self.textColor forKeyPath:BSJHlightTextFieldPlaceHolderColorKeyPath];
+//    [self setValue:self.textColor forKeyPath:BSJHlightTextFieldPlaceHolderColorKeyPath];
     
    return [super becomeFirstResponder];
 }
@@ -49,24 +51,10 @@ static NSString *const BSJHlightTextFieldPlaceHolderColorKeyPath = @"_placeholde
 
 - (BOOL)resignFirstResponder
 {
-    [self setValue:self.oriPlaceHolderColor forKeyPath:BSJHlightTextFieldPlaceHolderColorKeyPath];
+//    [self setValue:self.oriPlaceHolderColor forKeyPath:BSJHlightTextFieldPlaceHolderColorKeyPath];
     
     return [super resignFirstResponder];
 }
 
-
-
-- (void)layoutSubviews
-{
-    [super layoutSubviews];
-    
-    
-}
-
-+ (void)load
-{
-    
-    
-}
 
 @end

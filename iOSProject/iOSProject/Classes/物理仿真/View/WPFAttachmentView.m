@@ -20,8 +20,9 @@
 
 @implementation WPFAttachmentView
 
-- (instancetype)init {
-    if (self = [super init]) {
+- (instancetype)initWithFrame:(CGRect)frame {
+    
+    if (self = [super initWithFrame:frame]) {
         
         // 1. 设置boxView 的中心点
         self.boxView.center = CGPointMake(200, 200);
@@ -35,7 +36,7 @@
         
         [self.animator addBehavior:attachment];
         self.attachment = attachment;
-        
+
         // 4. 设置附着点图片(即直杆与被拖拽图片的连接点)
         UIImage *image = [UIImage imageNamed:@"AttachmentPoint_Mask"];
         UIImageView *anchorImgView = [[UIImageView alloc] initWithImage:image];
@@ -90,7 +91,6 @@
     
     // 3. 渲染
     [bezierPath stroke];
-    
 }
 
 

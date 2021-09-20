@@ -17,78 +17,49 @@
 
 @property(nonatomic,strong) UIView *myBlockView;
 
+/** <#digest#> */
+@property (nonatomic, strong) LMJBlockLoopOperation *operation;
 @end
 
 @implementation LMJBlockLoopViewController
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    LMJWeak(self);
     
-    
-    self.view.backgroundColor=[UIColor whiteColor];
-    
-    [self.view addSubview:self.myButton];
-    [self.myButton mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.top.mas_equalTo(100);
-        make.left.mas_equalTo(20);
-    }];
-    
-    
-    [self.view addSubview:self.myBlockButton];
-    [self.myBlockButton mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.top.mas_equalTo(170);
-        make.left.mas_equalTo(20);
-    }];
-    
-    [self.view addSubview:self.myModelButton];
-    [self.myModelButton mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.top.mas_equalTo(220);
-        make.left.mas_equalTo(20);
-    }];
-    
-    _myBlockView=[[UIView alloc] init];
+    _myBlockView = [[UIView alloc] init];
     _myBlockView.backgroundColor=[UIColor RandomColor];
-    [self.view addSubview:_myBlockView];
-    [_myBlockView mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.top.mas_equalTo(100);
-        make.right.mas_equalTo(-20);
-        make.size.mas_equalTo(CGSizeMake(100, 50));
-    }];
-    
-    LMJWeakSelf(self);
+    _myBlockView.height = 100;
+    self.tableView.tableHeaderView = _myBlockView;
     [_myBlockView addTapGestureRecognizer:^(UITapGestureRecognizer *recognizer, NSString *gestureId) {
         
-            //不要在这里面存放 关于BlockLoopViewController的变量 否则也会内存无法释放 例如：_info=name;
+        //不要在这里面存放 关于BlockLoopViewController的变量 否则也会内存无法释放 例如：
+//        _info = infoStr;
         [weakself.view makeToast:@"点击了"];
-        
     }];
+    
+    self.addItem([LMJWordArrowItem itemWithTitle:@"跳转子页" subTitle:nil itemOperation:^(NSIndexPath *indexPath) {
+        
+        [weakself myButtonAction];
+    }])
+    
+    .addItem([LMJWordArrowItem itemWithTitle:@"弹出模态窗口" subTitle:nil itemOperation:^(NSIndexPath *indexPath) {
+        
+        [weakself myModelButtonAction];
+    }])
+    
+    .addItem([LMJWordItem itemWithTitle:@"响应BlockLoopOperation中的block" subTitle:nil itemOperation:^(NSIndexPath *indexPath) {
+        
+        [weakself myBlockButtonAction];
+    }]);
     
 }
 
 
-//调用其它类的一些内存问题
--(void)myBlockButtonAction
-{
-    LMJWeakSelf(self);
-    //1：
-    [LMJBlockLoopOperation operateWithSuccessBlock:^{
-        [weakself showErrorMessage:@"成功执行完成"];
-    }];
-
-    LMJBlockLoopOperation *operation = [[LMJBlockLoopOperation alloc] init];
-    
-    //3：如果带有block 又引入self就要进行弱化对象operation，否则会出现内存释放的问题
-    LMJWeakSelf(operation);
-    operation.logAddress = ^(NSString *address) {
-        
-        [weakself showErrorMessage:weakoperation.address];
-    };
-}
-
-//子页开放的block
 -(void)myButtonAction
 {
     LMJChildBlockViewController *vc=[[LMJChildBlockViewController alloc]init];
+    // 子页面的 block push
     vc.successBlock=^()
     {
         [self loadPage];
@@ -96,20 +67,40 @@
     [self.navigationController pushViewController:vc animated:YES];
 }
 
+
 -(void)myModelButtonAction
 {
     LMJModalBlockViewController *vc=[[LMJModalBlockViewController alloc]init];
     
-    LMJWeakSelf(vc);
+    LMJWeak(vc);
     vc.successBlock=^()
     {
-
         if (weakvc) {
             [weakvc dismissViewControllerAnimated:YES completion:nil];
         }
     };
     
+//    A presentViewController B 后，a.presentedViewController就是b，b.presentingViewController就是a，
     [self presentViewController:vc animated:YES completion:nil];
+}
+
+//调用其它类的一些内存问题
+-(void)myBlockButtonAction
+{
+    LMJWeak(self);
+    //1：
+    [LMJBlockLoopOperation operateWithSuccessBlock:^{
+        [self showErrorMessage:@"成功执行完成"];
+    }];
+    
+    LMJBlockLoopOperation *operation = [[LMJBlockLoopOperation alloc] init];
+    
+    //3：如果带有block 又引入self就要进行弱化对象operation，否则会出现内存释放的问题
+    _operation = operation;
+    LMJWeak(operation);
+    operation.logAddress = ^(NSString *address) {
+        [weakself showErrorMessage:weakoperation.address];
+    };
 }
 
 -(void)showErrorMessage:(NSString *)message
@@ -124,113 +115,21 @@
 
 
 
+#pragma mark - LMJNavUIBaseViewControllerDataSource
 
-
-
-
-
-
-
--(UIButton *)myButton
-{
-    if (!_myButton) {
-        _myButton=[UIButton new];
-        _myButton.backgroundColor=[UIColor redColor];
-        [_myButton setTitle:@"跳转子页" forState:UIControlStateNormal];
-        [_myButton addTarget:self action:@selector(myButtonAction) forControlEvents:UIControlEventTouchUpInside];
-    }
-    return _myButton;
-}
-
--(UIButton *)myModelButton
-{
-    if (!_myModelButton) {
-        _myModelButton=[UIButton new];
-        _myModelButton.backgroundColor=[UIColor redColor];
-        [_myModelButton setTitle:@"弹出模态窗口" forState:UIControlStateNormal];
-        [_myModelButton addTarget:self action:@selector(myModelButtonAction) forControlEvents:UIControlEventTouchUpInside];
-    }
-    return _myModelButton;
-}
-
--(UIButton *)myBlockButton
-{
-    if (!_myBlockButton) {
-        _myBlockButton=[UIButton new];
-        _myBlockButton.backgroundColor=[UIColor redColor];
-        [_myBlockButton setTitle:@"响应BlockLoopOperation中的block" forState:UIControlStateNormal];
-        [_myBlockButton addTarget:self action:@selector(myBlockButtonAction) forControlEvents:UIControlEventTouchUpInside];
-    }
-    return _myBlockButton;
-}
-
-
-
-
-
-
-
-
-
-
-#pragma mark 重写BaseViewController设置内容
-
-- (UIColor *)lmjNavigationBackgroundColor:(LMJNavigationBar *)navigationBar
-{
-    return [UIColor RandomColor];
-}
-
-- (void)leftButtonEvent:(UIButton *)sender navigationBar:(LMJNavigationBar *)navigationBar
-{
-    NSLog(@"%s", __func__);
-    
-    [self.navigationController popViewControllerAnimated:YES];
-}
-
-- (void)rightButtonEvent:(UIButton *)sender navigationBar:(LMJNavigationBar *)navigationBar
-{
-    NSLog(@"%s", __func__);
-}
-
-- (void)titleClickEvent:(UILabel *)sender navigationBar:(LMJNavigationBar *)navigationBar
-{
-    NSLog(@"%@", sender);
-}
-
-- (NSMutableAttributedString*)lmjNavigationBarTitle:(LMJNavigationBar *)navigationBar
-{
-    return [self changeTitle:@"blockLoop"];;
-}
-
+/** 导航条左边的按钮 */
 - (UIImage *)lmjNavigationBarLeftButtonImage:(UIButton *)leftButton navigationBar:(LMJNavigationBar *)navigationBar
 {
-[leftButton setImage:[UIImage imageNamed:@"navigationButtonReturn"] forState:UIControlStateHighlighted];
-
-return [UIImage imageNamed:@"navigationButtonReturnClick"];
+    [leftButton setImage:[UIImage imageNamed:@"NavgationBar_white_back"] forState:UIControlStateHighlighted];
+    
+    return [UIImage imageNamed:@"NavgationBar_blue_back"];
 }
 
-
-- (UIImage *)lmjNavigationBarRightButtonImage:(UIButton *)rightButton navigationBar:(LMJNavigationBar *)navigationBar
+#pragma mark - LMJNavUIBaseViewControllerDelegate
+/** 左边的按钮的点击 */
+-(void)leftButtonEvent:(UIButton *)sender navigationBar:(LMJNavigationBar *)navigationBar
 {
-    rightButton.backgroundColor = [UIColor RandomColor];
-    
-    return nil;
+    [self.navigationController popViewControllerAnimated:YES];
 }
-
-
-
-#pragma mark 自定义代码
-
--(NSMutableAttributedString *)changeTitle:(NSString *)curTitle
-{
-    NSMutableAttributedString *title = [[NSMutableAttributedString alloc] initWithString:curTitle ?: @""];
-    
-    [title addAttribute:NSForegroundColorAttributeName value:[UIColor RandomColor] range:NSMakeRange(0, title.length)];
-    
-    [title addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:16] range:NSMakeRange(0, title.length)];
-    
-    return title;
-}
-
 
 @end

@@ -7,7 +7,7 @@
 //
 
 #import "LMJMasonryViewController.h"
-
+#import "UIView+GestureCallback.h"
 @interface LMJMasonryViewController ()
 
 @end
@@ -34,6 +34,32 @@
     [self masonryUpdate];
 }
 
+/**
+ *  多个控件固定间隔的等间隔排列，变化的是控件的长度或者宽度值
+ *
+ *  @param axisType        轴线方向
+ *  @param fixedSpacing    间隔大小
+ *  @param leadSpacing     头部间隔
+ *  @param tailSpacing     尾部间隔
+ */
+//- (void)mas_distributeViewsAlongAxis:(MASAxisType)axisType
+//                    withFixedSpacing:(CGFloat)fixedSpacing l
+//eadSpacing:(CGFloat)leadSpacing
+//tailSpacing:(CGFloat)tailSpacing;
+
+/**
+ *  多个固定大小的控件的等间隔排列,变化的是间隔的空隙
+ *
+ *  @param axisType        轴线方向
+ *  @param fixedItemLength 每个控件的固定长度或者宽度值
+ *  @param leadSpacing     头部间隔
+ *  @param tailSpacing     尾部间隔
+ */
+//- (void)mas_distributeViewsAlongAxis:(MASAxisType)axisType
+//                 withFixedItemLength:(CGFloat)fixedItemLength
+//                         leadSpacing:(CGFloat)leadSpacing
+//                         tailSpacing:(CGFloat)tailSpacing;
+
 - (void)masonryArrayBtns
 {
     NSArray *strings = @[@"确认", @"取消", @"再考虑一下吧"];
@@ -58,59 +84,14 @@
     
     [btnM mas_makeConstraints:^(MASConstraintMaker *make) {
         
-        make.top.mas_equalTo(80);
+        make.top.mas_equalTo(100);
         make.height.mas_equalTo(44);
         
     }];
     
 }
 
-- (void)show:(UIButton *)btn
-{
-    if (btn.tag == 0) {
-        
-        
-        [UIAlertController mj_showAlertWithTitle:@"one button" message:@"content" appearanceProcess:^(JXTAlertController * _Nonnull alertMaker) {
-            
-            alertMaker.addActionDefaultTitle(@"default_btn");
-            
-        } actionsBlock:^(NSInteger buttonIndex, UIAlertAction * _Nonnull action, JXTAlertController * _Nonnull alertSelf) {
-            NSLog(@"%zd, %@, %@", buttonIndex, action, alertSelf);
-        }];
-        
-    }else if (btn.tag == 1)
-    {
-        [UIAlertController mj_showAlertWithTitle:@"multiple btn" message:@"contentcontentcontentcontentcontentcontent" appearanceProcess:^(JXTAlertController * _Nonnull alertMaker) {
-            alertMaker.addActionDefaultTitle(@"default_btn").addActionCancelTitle(@"cancel_btn").addActionDestructiveTitle(@"Destructive_btn");
-        } actionsBlock:^(NSInteger buttonIndex, UIAlertAction * _Nonnull action, JXTAlertController * _Nonnull alertSelf) {
-            NSLog(@"%zd, %@, %@", buttonIndex, action, alertSelf);
-        }];
-        
-    }else if (btn.tag == 2)
-    {
-        [UIAlertController mj_showAlertWithTitle:@"title" message:@"content" appearanceProcess:^(JXTAlertController * _Nonnull alertMaker) {
-            
-            [alertMaker addTextFieldWithConfigurationHandler:^(UITextField * _Nonnull textField) {
-                NSLog(@"%@", textField);
-                textField.placeholder = @"placeholder";
-            }];
-            
-            [alertMaker addTextFieldWithConfigurationHandler:^(UITextField * _Nonnull textField) {
-                NSLog(@"%@", textField);
-                textField.placeholder = @"placeholder";
-            }];
-            
-            alertMaker.addActionDestructiveTitle(@"textOf1");
-            alertMaker.addActionDestructiveTitle(@"textOf2");
-            
-        } actionsBlock:^(NSInteger buttonIndex, UIAlertAction * _Nonnull action, JXTAlertController * _Nonnull alertSelf) {
-            if (buttonIndex == 0) {
-                NSLog(@"%@", [alertSelf.textFields.firstObject text]);
-            }else {
-                NSLog(@"%@", [alertSelf.textFields.lastObject text]);
-            }
-        }];
-    }
+- (void)show:(UIButton *)btn {
 }
 
 
@@ -136,7 +117,7 @@
     
     [myLabel mas_makeConstraints:^(MASConstraintMaker *make) {
         
-        make.top.mas_equalTo(130);
+        make.top.mas_equalTo(160);
         make.left.mas_equalTo(10);
     }];
     
@@ -171,17 +152,18 @@
     
     [myLabel mas_makeConstraints:^(MASConstraintMaker *make) {
         
-        make.top.mas_equalTo(160);
+        make.top.mas_equalTo(190);
         make.left.mas_equalTo(10);
-        
-        
-        make.right.mas_lessThanOrEqualTo(-80).priorityHigh();
     }];
     
     [mySenondLabel mas_makeConstraints:^(MASConstraintMaker *make) {
         
         make.left.mas_equalTo(myLabel.mas_right).offset(10);
         make.top.mas_equalTo(myLabel.mas_top);
+        make.width.mas_equalTo(44);
+        // 最少80
+        make.right.mas_lessThanOrEqualTo(-80).priorityHigh();
+        
     }];
     
 }
@@ -210,17 +192,19 @@
     
     [myLabel mas_makeConstraints:^(MASConstraintMaker *make) {
         
-        make.top.mas_equalTo(190);
+        make.top.mas_equalTo(220);
         make.left.mas_equalTo(10);
-        
-        
-        make.right.mas_lessThanOrEqualTo(-80).priorityHigh();
+
     }];
     
     [mySenondLabel mas_makeConstraints:^(MASConstraintMaker *make) {
         
         make.left.mas_equalTo(myLabel.mas_right).offset(10);
         make.top.mas_equalTo(myLabel.mas_top);
+        
+        make.width.mas_equalTo(44);
+        // 最少80
+        make.right.mas_lessThanOrEqualTo(-80).priorityHigh();
     }];
     
 }
@@ -238,7 +222,7 @@
     [myView mas_makeConstraints:^(MASConstraintMaker *make) {
         
         make.left.mas_equalTo(10);
-        make.top.mas_equalTo(220);
+        make.top.mas_equalTo(250);
         make.size.mas_equalTo(CGSizeMake(150, 100));
     }];
     
@@ -286,16 +270,17 @@
     scrollView.showsVerticalScrollIndicator = scrollView.showsHorizontalScrollIndicator = YES;
     [self.view addSubview:scrollView];
     
+    // 约束它的frame
     [scrollView mas_makeConstraints:^(MASConstraintMaker *make) {
         
-        make.top.mas_equalTo(220);
+        make.top.mas_equalTo(250);
         make.left.mas_equalTo(170);
         make.right.mas_equalTo(self.view).offset(-10);
         make.bottom.offset(-100);
         
     }];
     
-    
+    // 添加一个 containerView, containerView里边放子控件,通过子控件约束 containerView 大小
     UIView *containerView = [[UIView alloc] init];
     
     containerView.backgroundColor = [UIColor RandomColor];
@@ -304,9 +289,17 @@
     
     [containerView mas_makeConstraints:^(MASConstraintMaker *make) {
         
-        //        make.edges.mas_equalTo(scrollView);
-        make.edges.mas_equalTo(UIEdgeInsetsMake(10, 10, 10, 20));
-        //        make.height.mas_equalTo(kScreenHeight);
+        // 约束 内边距
+        // 或者
+        // make.edges.mas_equalTo(scrollView);
+        // 或者
+//        make.edges.mas_equalTo(UIEdgeInsetsMake(10, 10, 10, 20));
+        // 或者
+        make.left.offset(0);
+        make.right.offset(0);
+        make.top.offset(0);
+        make.bottom.offset(0);
+        // 约束宽度
         make.width.mas_equalTo(scrollView.mas_width);
     }];
     
@@ -342,6 +335,7 @@
     
     [containerView mas_updateConstraints:^(MASConstraintMaker *make) {
         
+        // 关键性约束, 约束 containerView 的大小
         make.bottom.mas_equalTo(lastView.mas_bottom).offset(20);
     }];
 }
@@ -358,7 +352,7 @@
     [myView mas_makeConstraints:^(MASConstraintMaker *make) {
         
         make.left.mas_equalTo(10);
-        make.bottom.offset(-20);
+        make.bottom.offset(-100);
         make.size.mas_equalTo(CGSizeMake(150, 200));
     }];
     
@@ -375,8 +369,8 @@
         make.edges.mas_equalTo(myView).insets(UIEdgeInsetsMake(10, 5, 15, 5));
     }];
     
-    LMJWeakSelf(myInView);
-    LMJWeakSelf(myView);
+    LMJWeak(myInView);
+    LMJWeak(myView);
     [myView addTapGestureRecognizer:^(UITapGestureRecognizer *recognizer, NSString *gestureId) {
         
         [weakmyInView mas_remakeConstraints:^(MASConstraintMaker *make) {

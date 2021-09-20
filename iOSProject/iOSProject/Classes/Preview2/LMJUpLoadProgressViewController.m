@@ -12,6 +12,7 @@
 #import <AVFoundation/AVFoundation.h>
 #import <TZImageManager.h>
 #import <TZLocationManager.h>
+#import "MBProgressHUD+LMJ.h"
 
 static const NSInteger maxPhotoCount = 9;
 
@@ -35,18 +36,10 @@ static const NSInteger maxPhotoCount = 9;
         _imagePickerVc = [[UIImagePickerController alloc] init];
         _imagePickerVc.delegate = self;
         // set appearance / 改变相册选择页的导航栏外观
-        if (iOS7Later) {
-            _imagePickerVc.navigationBar.barTintColor = self.navigationController.navigationBar.barTintColor;
-        }
         _imagePickerVc.navigationBar.tintColor = self.navigationController.navigationBar.tintColor;
         UIBarButtonItem *tzBarItem, *BarItem;
-        if (iOS9Later) {
             tzBarItem = [UIBarButtonItem appearanceWhenContainedInInstancesOfClasses:@[[TZImagePickerController class]]];
             BarItem = [UIBarButtonItem appearanceWhenContainedInInstancesOfClasses:@[[UIImagePickerController class]]];
-        } else {
-            tzBarItem = [UIBarButtonItem appearanceWhenContainedInInstancesOfClasses:@[[TZImagePickerController class]]];
-            BarItem = [UIBarButtonItem appearanceWhenContainedInInstancesOfClasses:@[[UIImagePickerController class]]];
-        }
         NSDictionary *titleTextAttributes = [tzBarItem titleTextAttributesForState:UIControlStateNormal];
         [BarItem setTitleTextAttributes:titleTextAttributes forState:UIControlStateNormal];
         
@@ -65,7 +58,7 @@ static const NSInteger maxPhotoCount = 9;
 
 - (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath {
     LMJUpLoadImageCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:NSStringFromClass([LMJUpLoadImageCell class]) forIndexPath:indexPath];
-    LMJWeakSelf(self);
+    LMJWeak(self);
     if (indexPath.item == self.selectedImages.count) {
         cell.photoImage = nil;
         cell.addPhotoClick = ^(LMJUpLoadImageCell *uploadImageCell) {
@@ -170,9 +163,9 @@ static const NSInteger maxPhotoCount = 9;
      imagePickerVc.delegate = self;
      */
     
-    imagePickerVc.isStatusBarDefault = NO;
+//    imagePickerVc.statusBarStyle = NO;
 #pragma mark - 到这里为止
-    LMJWeakSelf(self);
+    LMJWeak(self);
     // You can get the photos by block, the same as by delegate.
     // 你可以通过block或者代理，来得到用户选择的照片.
     [imagePickerVc setDidFinishPickingPhotosHandle:^(NSArray<UIImage *> *photos, NSArray *assets, BOOL isSelectOriginalPhoto) {
@@ -191,7 +184,7 @@ static const NSInteger maxPhotoCount = 9;
 - (void)takePhoto
 {
     AVAuthorizationStatus authStatus = [AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeVideo];
-    if ((authStatus == AVAuthorizationStatusRestricted || authStatus == AVAuthorizationStatusDenied) && iOS7Later) {
+    if ((authStatus == AVAuthorizationStatusRestricted || authStatus == AVAuthorizationStatusDenied)) {
         // 无相机权限 做一个友好的提示
         
         [UIAlertController mj_showAlertWithTitle:@"无法使用相机" message:@"请在iPhone的""设置-隐私-相机""中允许访问相机" appearanceProcess:^(JXTAlertController * _Nonnull alertMaker) {
@@ -209,20 +202,16 @@ static const NSInteger maxPhotoCount = 9;
         
     } else if (authStatus == AVAuthorizationStatusNotDetermined) {
         // fix issue 466, 防止用户首次拍照拒绝授权时相机页黑屏
-        if (iOS7Later) {
-            [AVCaptureDevice requestAccessForMediaType:AVMediaTypeVideo completionHandler:^(BOOL granted) {
-                if (granted) {
-                    dispatch_sync(dispatch_get_main_queue(), ^{
-                        [self takePhoto];
-                    });
-                }
-            }];
-        } else {
-            [self takePhoto];
-        }
+        [AVCaptureDevice requestAccessForMediaType:AVMediaTypeVideo completionHandler:^(BOOL granted) {
+            if (granted) {
+                dispatch_sync(dispatch_get_main_queue(), ^{
+                    [self takePhoto];
+                });
+            }
+        }];
         // 拍照之前还需要检查相册权限
-    } else if ([TZImageManager authorizationStatus] == 2) { // 已被拒绝，没有相册权限，将无法保存拍的照片
-        if (iOS8Later) {
+    } else if (authStatus == AVAuthorizationStatusDenied) { // 已被拒绝，没有相册权限，将无法保存拍的照片
+
             [UIAlertController mj_showAlertWithTitle:@"无法使用相机" message:@"请在iPhone的""设置-隐私-相机""中允许访问相机" appearanceProcess:^(JXTAlertController * _Nonnull alertMaker) {
                 
                 alertMaker.addActionDestructiveTitle(@"取消").addActionDefaultTitle(@"确认");
@@ -235,8 +224,7 @@ static const NSInteger maxPhotoCount = 9;
                 }
                 
             }];
-        }
-    } else if ([TZImageManager authorizationStatus] == 0) { // 未请求过相册权限
+    } else if (authStatus == AVAuthorizationStatusNotDetermined) { // 未请求过相册权限
         [[TZImageManager manager] requestAuthorizationWithCompletion:^{
             [self takePhoto];
         }];
@@ -249,9 +237,9 @@ static const NSInteger maxPhotoCount = 9;
 - (void)pushImagePickerController {
     // 提前定位
     __weak typeof(self) weakSelf = self;
-    [[TZLocationManager manager] startLocationWithSuccessBlock:^(CLLocation *location, CLLocation *oldLocation) {
+    [[TZLocationManager manager] startLocationWithSuccessBlock:^(NSArray<CLLocation *> *locations) {
         __strong typeof(weakSelf) strongSelf = weakSelf;
-        strongSelf.location = location;
+        strongSelf.location = locations.lastObject;
     } failureBlock:^(NSError *error) {
         __strong typeof(weakSelf) strongSelf = weakSelf;
         strongSelf.location = nil;
@@ -260,9 +248,7 @@ static const NSInteger maxPhotoCount = 9;
     UIImagePickerControllerSourceType sourceType = UIImagePickerControllerSourceTypeCamera;
     if ([UIImagePickerController isSourceTypeAvailable: UIImagePickerControllerSourceTypeCamera]) {
         self.imagePickerVc.sourceType = sourceType;
-        if(iOS8Later) {
-            self.imagePickerVc.modalPresentationStyle = UIModalPresentationOverCurrentContext;
-        }
+        self.imagePickerVc.modalPresentationStyle = UIModalPresentationOverCurrentContext;
         [self presentViewController:self.imagePickerVc animated:YES completion:nil];
     } else {
         NSLog(@"模拟器中无法打开照相机,请在真机中使用");
@@ -277,14 +263,14 @@ static const NSInteger maxPhotoCount = 9;
         tzImagePickerVc.sortAscendingByModificationDate = YES;
         [tzImagePickerVc showProgressHUD];
         UIImage *image = [info objectForKey:UIImagePickerControllerOriginalImage];
-        
         // save photo and get asset / 保存图片，获取到asset
-        [[TZImageManager manager] savePhotoWithImage:image location:self.location completion:^(NSError *error){
+        [[TZImageManager manager] savePhotoWithImage:image location:self.location completion:^(PHAsset *asset, NSError *error){
             if (error) {
                 [tzImagePickerVc hideProgressHUD];
                 NSLog(@"图片保存失败 %@",error);
             } else {
-                [[TZImageManager manager] getCameraRollAlbum:NO allowPickingImage:YES completion:^(TZAlbumModel *model) {
+                
+                [[TZImageManager manager] getCameraRollAlbum:NO allowPickingImage:YES needFetchAssets:YES completion:^(TZAlbumModel *model) {
                     [[TZImageManager manager] getAssetsFromFetchResult:model.result allowPickingVideo:NO allowPickingImage:YES completion:^(NSArray<TZAssetModel *> *models) {
                         [tzImagePickerVc hideProgressHUD];
                         TZAssetModel *assetModel = [models firstObject];
@@ -334,14 +320,16 @@ static const NSInteger maxPhotoCount = 9;
         return;
     }
     
-    NSString *mineType = @"application/octet-stream";
+//    NSString *mineType = @"application/octet-stream";
     NSString *name = @"file";
     [self.selectedImages enumerateObjectsUsingBlock:^(UIImage * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-        
-        [[LMJRequestManager sharedManager] upload:[LMJXMGBaseUrl stringByAppendingPathComponent:@"upload"] parameters:@{@"username" : @"NJHu"} formDataBlock:^(id<AFMultipartFormData> formData) {
+
+        [[LMJRequestManager sharedManager] upload:[LMJXMGBaseUrl stringByAppendingPathComponent:@"upload"] parameters:@{@"username" : @"NJHu"} formDataBlock:^NSDictionary<NSData *,LMJDataName *> *(id<AFMultipartFormData> formData, NSMutableDictionary<NSData *,LMJDataName *> *needFillDataDict) {
             
             // 压缩率控制
-            [formData appendPartWithFileData:UIImageJPEGRepresentation(obj, 1) name:name fileName:@"test.png" mimeType:mineType];
+            needFillDataDict[UIImageJPEGRepresentation(obj, 1)] = name;
+            
+            return needFillDataDict;
             
         } progress:^(NSProgress *progress) {
             

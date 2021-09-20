@@ -11,7 +11,7 @@
 @interface LMJNavigationController ()
 
 /** 系统的右划返回功能的代理记录 */
-@property (nonatomic, strong) id popGesDelegate;
+//@property (nonatomic, strong) id popGesDelegate;
 
 @end
 
@@ -21,9 +21,9 @@
     [super viewDidLoad];
     
     self.navigationBar.hidden = YES;
-    
 
-    [self setupPOPGes];
+    // 不让自控制器控制系统导航条
+    self.fd_viewControllerBasedNavigationBarAppearanceEnabled = NO;
 }
 /*
 #pragma mark - 全局侧滑代码------------BEGIN----
@@ -50,28 +50,26 @@
 #pragma mark - 全局侧滑代码------------END----
 */
 
-- (void)setupPOPGes
-{
-    self.fd_viewControllerBasedNavigationBarAppearanceEnabled = NO;
-}
-
-- (void)viewDidLayoutSubviews
-{
-    [super viewDidLayoutSubviews];
-}
-
-
 - (void)pushViewController:(UIViewController *)viewController animated:(BOOL)animated
 {
-    
     if (self.childViewControllers.count != 0) {
-        
         viewController.hidesBottomBarWhenPushed = YES;
     }
     
     [super pushViewController:viewController animated:animated];
 }
 
+- (void)presentViewController:(UIViewController *)viewControllerToPresent animated:(BOOL)flag completion:(void (^)(void))completion
+{
+    if (@available(iOS 13.0, *)) {
+        if (viewControllerToPresent.modalPresentationStyle == UIModalPresentationPageSheet || viewControllerToPresent.modalPresentationStyle == UIModalPresentationAutomatic){
+            viewControllerToPresent.modalPresentationStyle = UIModalPresentationFullScreen;
+        }
+    } else {
+        // Fallback on earlier versions
+    }
+    [super presentViewController:viewControllerToPresent animated:flag completion:completion];
+}
 
 @end
 

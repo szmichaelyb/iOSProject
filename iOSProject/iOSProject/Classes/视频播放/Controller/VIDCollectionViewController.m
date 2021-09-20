@@ -1,28 +1,21 @@
 //
 //  VIDCollectionViewController.m
-//  PLMMPRJK
+//  iOSProject
 //
-//  Created by HuXuPeng on 2017/9/22.
-//  Copyright © 2017年 GoMePrjk. All rights reserved.
+//  Created by HuXuPeng on 2018/4/23.
+//  Copyright © 2018年 github.com/njhu. All rights reserved.
 //
 
 #import "VIDCollectionViewController.h"
-#import "VIDCollectionViewVideoCell.h"
+#import "LMJXGMVideo.h"
 #import <ZFPlayer.h>
-#import <ZFDownloadManager.h>
-#import "ZFVideoModel.h"
-
+#import "VIDCachesTool.h"
 
 @interface VIDCollectionViewController ()<LMJVerticalFlowLayoutDelegate, ZFPlayerDelegate>
-
-/** <#digest#> */
-@property (nonatomic, strong) NSMutableArray<ZFVideoModel *> *videoModels;
-
-/** <#digest#> */
+/**网络数据*/
+@property (nonatomic, strong) NSMutableArray<LMJXGMVideo *> *videos;
+/** 单利播放 */
 @property (nonatomic, strong) ZFPlayerView *playerView;
-
-/** <#digest#> */
-@property (nonatomic, strong) ZFPlayerControlView *controlView;
 
 @end
 
@@ -30,92 +23,88 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    
-    self.navigationItem.title = @"collectionView列表视频";
-    
-    UIEdgeInsets insets = self.collectionView.contentInset;
-    insets.bottom += self.tabBarController.tabBar.lmj_height;
-    self.collectionView.contentInset = insets;
+    LMJWeak(self);
+    NSDictionary *parameters = @{@"type" : @"JSON"};
+    [self showLoading];
+    [[LMJRequestManager sharedManager] GET:[LMJXMGBaseUrl stringByAppendingPathComponent:@"video"] parameters:parameters completion:^(LMJBaseResponse *response) {
+        [weakself dismissLoading];
+        if (!response.error && response.responseObject) {
+            weakself.videos = [LMJXGMVideo mj_objectArrayWithKeyValuesArray:response.responseObject[@"videos"]];
+        } else {
+            [weakself.view makeToast:response.errorMsg];
+            return ;
+        }
+        [weakself.collectionView reloadData];
+    }];
 }
 
 // 页面消失时候
 - (void)viewWillDisappear:(BOOL)animated {
     [super viewWillDisappear:animated];
-    
     [self.playerView resetPlayer];
 }
 
-- (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section
-{
-    return self.videoModels.count;
-}
-
-- (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath
-{
-    VIDCollectionViewVideoCell *cell = [VIDCollectionViewVideoCell videoCellWithCollectionView:collectionView forIndexPath:indexPath];
-    
-    // 取到对应cell的model
-    ZFVideoModel *model        = self.videoModels[indexPath.row];
-    // 赋值model
-    cell.model                         = model;
-    __weak typeof(indexPath) weakIndexPath = indexPath;
-    __weak typeof(cell) weakCell = cell;
-    __weak typeof(self)  weakSelf      = self;
-    __weak typeof(model) weakModel = model;
-    // 点击播放的回调
-    cell.playBlock = ^(UIButton *btn){
-        
-
-        // 取出字典中的第一视频URL
-        NSURL *videoURL = [NSURL URLWithString:weakModel.playInfos.firstObject.url];
-        
-        ZFPlayerModel *playerModel = [[ZFPlayerModel alloc] init];
-        playerModel.title            = weakModel.title;
-        playerModel.videoURL         = videoURL;
-        playerModel.placeholderImageURLString = model.coverForFeed;
-        playerModel.scrollView       = weakSelf.collectionView;
-        playerModel.indexPath        = weakIndexPath;
-        
-        // 分辨率字典（key:分辨率名称，value：分辨率url)
-        NSMutableDictionary *dic = [NSMutableDictionary dictionary];
-        for (ZFVideoResolution * resolution in weakModel.playInfos) {
-            [dic setValue:resolution.url forKey:resolution.name];
-        }
-        // 赋值分辨率字典
-        playerModel.resolutionDic    = dic;
-        // player的父视图tag
-        playerModel.fatherViewTag    = weakCell.picView.tag;
-        
-        // 设置播放控制层和model
-        [weakSelf.playerView playerControlView:weakSelf.controlView playerModel:playerModel];
-        // 下载功能
-        weakSelf.playerView.hasDownload = YES;
-        // 自动播放
-        [weakSelf.playerView autoPlayTheVideo];
-    };
-
-    
-    return cell;
-}
-
-
-
-#pragma mark - getter
-- (NSMutableArray<ZFVideoModel *> *)videoModels
-{
-    if(_videoModels == nil)
-    {
-        
-        NSString *path = [[NSBundle mainBundle] pathForResource:@"videoData" ofType:@"json"];
-        NSData *data = [NSData dataWithContentsOfFile:path];
-        NSDictionary *rootDict = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingAllowFragments error:nil];
-        
-        NSArray *videoList = [rootDict objectForKey:@"videoList"];
-        
-        _videoModels = [ZFVideoModel mj_objectArrayWithKeyValuesArray:videoList];
-        
+- (UIStatusBarStyle)preferredStatusBarStyle {
+    // 这里设置横竖屏不同颜色的statusbar
+    if (ZFPlayerShared.isLandscape) {
+        return UIStatusBarStyleLightContent;
     }
-    return _videoModels;
+    return UIStatusBarStyleDefault;
+}
+
+- (BOOL)prefersStatusBarHidden {
+    return ZFPlayerShared.isStatusBarHidden;
+}
+
+- (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section {
+    return self.videos.count;
+}
+
+- (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath {
+    UICollectionViewCell *collectionViewVideoCell = [collectionView dequeueReusableCellWithReuseIdentifier:@"collectionViewVideoCell" forIndexPath:indexPath];
+    UILabel *titleLabel = [collectionViewVideoCell.contentView viewWithTag:99];
+    titleLabel.text = self.videos[indexPath.row].name;
+    UIImageView *imageView = [[collectionViewVideoCell.contentView viewWithTag:199] viewWithTag:1991];
+    [imageView sd_setImageWithURL:self.videos[indexPath.row].image];
+    
+    return collectionViewVideoCell;
+}
+
+- (IBAction)cellPlayClick:(UIButton *)sender {
+    UICollectionViewCell *cell = (UICollectionViewCell *)sender.superview.superview.superview;
+    NSIndexPath *indexPath = [self.collectionView indexPathForCell:cell];
+    LMJXGMVideo *video = self.videos[indexPath.row];
+    
+    // 分辨率字典（key:分辨率名称，value：分辨率url)
+    NSDictionary *dic = @{ @"高清": video.url.absoluteString, @"标清": video.url.absoluteString};
+    // 取出字典中的第一视频URL
+    NSURL *videoURL = [NSURL URLWithString:dic.allValues.firstObject];
+    
+    ZFPlayerModel *playerModel = [[ZFPlayerModel alloc] init];
+    playerModel.title            = video.name;
+    playerModel.videoURL         = videoURL;
+    playerModel.placeholderImageURLString = video.image.absoluteString;
+    playerModel.scrollView       = self.collectionView;
+    playerModel.indexPath        = indexPath;
+    // 赋值分辨率字典
+    playerModel.resolutionDic    = dic;
+    // player的父视图tag, imageView 199
+    playerModel.fatherViewTag    = [cell viewWithTag:199].tag;
+    
+    // 设置播放控制层和model
+    [self.playerView playerControlView:nil playerModel:playerModel];
+    // 下载功能
+    self.playerView.hasDownload = YES;
+    // 自动播放
+    [self.playerView autoPlayTheVideo];
+}
+
+#pragma mark - ZFPlayerDelegate
+
+- (void)zf_playerDownload:(NSString *)url {
+    // 此处是截取的下载地址，可以自己根据服务器的视频名称来赋值
+//    [[VIDCachesTool sharedTool].downloadManager download:url];
+    [VIDSharedTool downLoad:url];
 }
 
 - (ZFPlayerView *)playerView {
@@ -131,51 +120,34 @@
         // _playerView.playerLayerGravity = ZFPlayerLayerGravityResizeAspect;
         // 静音
         // _playerView.mute = YES;
+        // 移除屏幕移除player
+        // _playerView.stopPlayWhileCellNotVisable = YES;
+        
+        _playerView.forcePortrait = NO;
+        
+        //        ZFPlayerShared.isLockScreen = YES;
+        ZFPlayerShared.isStatusBarHidden = NO;
     }
     return _playerView;
 }
 
-- (ZFPlayerControlView *)controlView {
-    if (!_controlView) {
-        _controlView = [[ZFPlayerControlView alloc] init];
-    }
-    return _controlView;
-}
-
-
-#pragma mark - ZFPlayerDelegate
-
-- (void)zf_playerDownload:(NSString *)url {
-    //     此处是截取的下载地址，可以自己根据服务器的视频名称来赋值
-    NSString *name = [url lastPathComponent];
-    [[ZFDownloadManager sharedDownloadManager] downFileUrl:url filename:name fileimage:nil];
-    // 设置最多同时下载个数（默认是3）
-    [ZFDownloadManager sharedDownloadManager].maxCount = 4;
-    
-}
-
-
 
 #pragma mark - LMJVerticalFlowLayoutDelegate
-
-
-- (CGFloat)waterflowLayout:(LMJVerticalFlowLayout *)waterflowLayout collectionView:(UICollectionView *)collectionView heightForItemAtIndexPath:(NSIndexPath *)indexPath itemWidth:(CGFloat)itemWidth
-{
-    return itemWidth * 9.0 / 16.0 + 40.0;
+// 需要返回对应的布局
+- (UICollectionViewLayout *)collectionViewController:(LMJCollectionViewController *)collectionViewController layoutForCollectionView:(UICollectionView *)collectionView {
+    return [LMJVerticalFlowLayout flowLayoutWithDelegate:self];
 }
 
-/**
- *  需要显示的列数, 默认3
- */
-- (NSInteger)waterflowLayout:(LMJVerticalFlowLayout *)waterflowLayout columnsInCollectionView:(UICollectionView *)collectionView
-{
+- (NSInteger)waterflowLayout:(LMJVerticalFlowLayout *)waterflowLayout columnsInCollectionView:(UICollectionView *)collectionView {
     return 2;
 }
 
-// 需要返回对应的布局
-- (UICollectionViewLayout *)collectionViewController:(LMJCollectionViewController *)collectionViewController layoutForCollectionView:(UICollectionView *)collectionView
-{
-    return [[LMJVerticalFlowLayout alloc] initWithDelegate:self];
+- (CGFloat)waterflowLayout:(LMJVerticalFlowLayout *)waterflowLayout collectionView:(UICollectionView *)collectionView linesMarginForItemAtIndexPath:(NSIndexPath *)indexPath {
+    return 20;
+}
+
+- (CGFloat)waterflowLayout:(LMJVerticalFlowLayout *)waterflowLayout collectionView:(UICollectionView *)collectionView heightForItemAtIndexPath:(NSIndexPath *)indexPath itemWidth:(CGFloat)itemWidth {
+    return 20 + 20 + itemWidth;
 }
 
 @end

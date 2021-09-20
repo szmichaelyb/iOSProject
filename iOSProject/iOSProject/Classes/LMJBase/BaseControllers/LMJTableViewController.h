@@ -14,9 +14,8 @@
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView NS_REQUIRES_SUPER;
 
 /** <#digest#> */
-@property (weak, nonatomic) UITableView *tableView;
+@property (weak, nonatomic) IBOutlet UITableView *tableView;
 
 // tableview的样式, 默认plain
 - (instancetype)initWithStyle:(UITableViewStyle)style;
-
 @end

@@ -15,21 +15,11 @@
 
 @optional
 - (BOOL)navUIBaseViewControllerIsNeedNavBar:(LMJNavUIBaseViewController *)navUIBaseViewController;
-
-- (UIStatusBarStyle)navUIBaseViewControllerPreferStatusBarStyle:(LMJNavUIBaseViewController *)navUIBaseViewController;
-
 @end
 
 @interface LMJNavUIBaseViewController : UIViewController <LMJNavigationBarDelegate, LMJNavigationBarDataSource, LMJNavUIBaseViewControllerDataSource>
-
--(void)changeNavigationBarTranslationY:(CGFloat)translationY;
-
--(void)changeNavgationTitle:(NSMutableAttributedString *)title;
-
--(void)changeNavigationBarHeight:(CGFloat)height;
-
--(void)changeNavgationBarBackgroundColor:(UIColor *)backgroundColor;
-
-/** <#digest#> */
+/*默认的导航栏字体*/
+- (NSMutableAttributedString *)changeTitle:(NSString *)curTitle;
+/**  */
 @property (weak, nonatomic) LMJNavigationBar *lmj_navgationBar;
 @end

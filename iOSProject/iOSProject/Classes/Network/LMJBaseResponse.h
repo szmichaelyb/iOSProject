@@ -11,19 +11,19 @@
 @interface LMJBaseResponse : NSObject
 
 
-/** <#digest#> */
+/** 错误 */
 @property (nonatomic, strong) NSError *error;
 
-/** <#digest#> */
+/** 错误提示 */
 @property (nonatomic, copy) NSString *errorMsg;
 
-/** <#digest#> */
+/** 错误码 */
 @property (assign, nonatomic) NSInteger statusCode;
 
-/** <#digest#> */
-@property (nonatomic, copy) NSMutableDictionary *headers;
+/** 响应头 */
+@property (nonatomic, strong) NSMutableDictionary *headers;
 
-/** <#digest#> */
+/** 响应体 */
 @property (nonatomic, strong) id responseObject;
 
 @end

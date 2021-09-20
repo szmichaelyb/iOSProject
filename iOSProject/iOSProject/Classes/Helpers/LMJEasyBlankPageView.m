@@ -7,15 +7,16 @@
 //
 
 #import "LMJEasyBlankPageView.h"
+#import <YYAnimatedImageView.h>
 
 @interface LMJEasyBlankPageView()
-/** <#digest#> */
+/** 加载按钮 */
 @property (weak, nonatomic) UIButton *reloadBtn;
-/** <#digest#> */
+/** 图片 */
 @property (weak, nonatomic) YYAnimatedImageView *imageView;
-/** <#digest#> */
+/** 提示 label */
 @property (weak, nonatomic) UILabel *tipLabel;
-/** <#digest#> */
+/** 按钮点击 */
 @property (nonatomic, copy) void(^reloadBlock)(UIButton *sender);
 @end
 
@@ -31,24 +32,20 @@
     self = [super initWithFrame:frame];
     if (self) {
         [self.tipLabel mas_makeConstraints:^(MASConstraintMaker *make) {
-            
             make.centerX.offset(0);
             make.left.right.equalTo(self.imageView);
             make.top.mas_offset(frame.size.height * 0.2);
-            
         }];
         
         [self.imageView mas_makeConstraints:^(MASConstraintMaker *make) {
-            
             make.top.mas_equalTo(self.tipLabel.mas_bottom).offset(10);
             make.centerX.offset(0);
         }];
         
         [self.reloadBtn mas_makeConstraints:^(MASConstraintMaker *make) {
-            
             make.centerX.offset(0);
             make.top.mas_equalTo(self.imageView.mas_bottom).offset(10);
-            make.left.right.equalTo(self.imageView);
+//            make.width.mas_equalTo(@94);
             make.height.mas_equalTo(44);
         }];
     }
@@ -73,7 +70,7 @@
         self.reloadBtn.hidden = NO;
         self.tipLabel.hidden = NO;
         self.imageView.hidden = NO;
-    } else { // !hasData
+    } else {
         if (blankPageType == LMJEasyBlankPageViewTypeNoData) {
             [self.imageView setImage:[UIImage imageNamed:@"common_noRecord"]];
             self.tipLabel.text = @"暂无数据";
@@ -87,7 +84,6 @@
 - (void)reloadClick:(UIButton *)btn
 {
     !self.reloadBlock ?: self.reloadBlock(btn);
-    
 }
 
 - (UIButton *)reloadBtn
@@ -115,7 +111,6 @@
         imageView.autoPlayAnimatedImage = YES;
         [self addSubview:imageView];
         _imageView = imageView;
-        
     }
     return _imageView;
 }
@@ -134,6 +129,40 @@
         label.font = [UIFont systemFontOfSize:16];
     }
     return _tipLabel;
+}
+
+@end
+
+
+
+static void *BlankPageViewKey = &BlankPageViewKey;
+
+@implementation UIView (LMJConfigBlank)
+
+- (void)setBlankPageView:(LMJEasyBlankPageView *)blankPageView{
+    objc_setAssociatedObject(self, BlankPageViewKey,
+                             blankPageView,
+                             OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
+
+- (LMJEasyBlankPageView *)blankPageView{
+    return objc_getAssociatedObject(self, BlankPageViewKey);
+}
+
+- (void)configBlankPage:(LMJEasyBlankPageViewType)blankPageType hasData:(BOOL)hasData hasError:(BOOL)hasError reloadButtonBlock:(void (^)(id))block{
+    if (hasData) {
+        if (self.blankPageView) {
+            self.blankPageView.hidden = YES;
+            [self.blankPageView removeFromSuperview];
+        }
+    }else{
+        if (!self.blankPageView) {
+            self.blankPageView = [[LMJEasyBlankPageView alloc] initWithFrame:CGRectMake(0, 0, self.lmj_width, self.lmj_height)];
+        }
+        self.blankPageView.hidden = NO;
+        [self addSubview:self.blankPageView];
+        [self.blankPageView configWithType:blankPageType hasData:NO hasError:hasError reloadButtonBlock:block];
+    }
 }
 
 @end
